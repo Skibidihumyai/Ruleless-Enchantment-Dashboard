@@ -93,7 +93,7 @@
             transition: all 0.3s ease;
         }
 
-        /* ===== LOGO (RECTANGULAR) ===== */
+        /* ===== LOGO ===== */
         .logo-wrapper {
             display: flex;
             justify-content: center;
@@ -239,6 +239,7 @@
 
         /* ===== LOADSTRING BOX ===== */
         .loadstring-box {
+            position: relative;
             margin-top: 6px;
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.04);
@@ -250,6 +251,50 @@
             word-break: break-all;
             line-height: 1.6;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: default;
+        }
+
+        /* ===== PADLOCK OVERLAY ===== */
+        .lock-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 10, 0.45);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            pointer-events: none;
+            transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
+            z-index: 2;
+        }
+
+        .lock-overlay svg {
+            width: 28px;
+            height: 28px;
+            stroke: #ff4d4d;
+            stroke-width: 1.8;
+            fill: none;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .lock-overlay .lock-text {
+            color: #666;
+            font-size: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-left: 10px;
+        }
+
+        .loadstring-box.verified .lock-overlay {
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(0px);
         }
 
         .loadstring-box .ls-label {
@@ -277,7 +322,9 @@
             font-size: 0.68rem;
             color: #d0d0d0;
             word-break: break-all;
-            user-select: all;
+            user-select: none;
+            -webkit-user-select: none;
+            pointer-events: none;
         }
 
         .loadstring-box .ls-code .hl {
@@ -291,6 +338,12 @@
         .loadstring-box.verified {
             border-color: rgba(50, 255, 100, 0.15);
             box-shadow: 0 0 30px rgba(50, 255, 100, 0.02);
+        }
+
+        .loadstring-box.verified .ls-code {
+            user-select: text;
+            -webkit-user-select: text;
+            pointer-events: auto;
         }
 
         /* ===== COPY BUTTON ===== */
@@ -432,6 +485,13 @@
                 font-size: 0.7rem;
                 padding: 8px 16px;
             }
+            .lock-overlay svg {
+                width: 22px;
+                height: 22px;
+            }
+            .lock-overlay .lock-text {
+                font-size: 0.45rem;
+            }
         }
     </style>
 </head>
@@ -502,8 +562,17 @@
             ติดตาม @rulelessenchantment
         </button>
 
-        <!-- ===== LOADSTRING BOX ===== -->
+        <!-- ===== LOADSTRING BOX WITH LOCK ===== -->
         <div class="loadstring-box" id="lsBox">
+            <!-- Padlock Overlay -->
+            <div class="lock-overlay" id="lockOverlay">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <span class="lock-text">ติดตามเพื่อปลดล็อก</span>
+            </div>
+
             <div class="ls-label">
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="4 17 10 11 4 5" />
@@ -512,7 +581,7 @@
                 LOADSTRING
             </div>
             <div class="ls-code" id="lsCode">
-                <span class="hl">loadstring</span>(game:<span class="hl">HttpGet</span>("<span class="url-hl">https://raw.githubusercontent.com/Skibidihumyai/Ruleless-Enchantment/refs/heads/main/Ruleless%20Enchanment.lua</span>"))()
+                <span class="hl">loadstring</span>(game:<span class="hl">HttpGet</span>("<span class="url-hl">https://raw.githubusercontent.com/Skibidihumyai/Ruleless-Enchantment/refs/heads/main/Ruleless%20Enchantment.lua</span>"))()
             </div>
         </div>
 
@@ -545,6 +614,7 @@
             'use strict';
 
             const lsBox = document.getElementById('lsBox');
+            const lockOverlay = document.getElementById('lockOverlay');
             const copyBtn = document.getElementById('copyBtn');
             const copyBtnText = document.getElementById('copyBtnText');
             const feedback = document.getElementById('feedback');
@@ -552,7 +622,7 @@
             const tiktokBtn = document.getElementById('tiktokBtn');
 
             const LOADSTRING_RAW =
-                `loadstring(game:HttpGet("https://raw.githubusercontent.com/Skibidihumyai/Ruleless-Enchantment/refs/heads/main/Ruleless%20Enchanment.lua"))()`;
+                `loadstring(game:HttpGet("https://raw.githubusercontent.com/Skibidihumyai/Ruleless-Enchantment/refs/heads/main/Ruleless%20Enchantment.lua"))()`;
 
             const MIN_FOLLOW_SECONDS = 5;
             const STORAGE_KEY = 're_followed_v2';
@@ -570,13 +640,13 @@
             }
 
             // ============================================================
-            //  FUNC: เปิดใช้งานปุ่มคัดลอก
+            //  FUNC: เปิดใช้งานปุ่มคัดลอก + ปลดล็อก
             // ============================================================
             function enableCopy() {
                 isVerified = true;
                 isWaiting = false;
                 copyBtn.classList.add('active');
-                lsBox.classList.add('verified');
+                lsBox.classList.add('verified'); // ซ่อน lock overlay
                 showFeedback('✅ ติดตามสำเร็จ! (กดคัดลอกได้)', 'success');
                 copyBtnText.textContent = 'คัดลอก Loadstring';
                 localStorage.setItem(STORAGE_KEY, 'true');
@@ -637,12 +707,8 @@
             //  FUNC: เมื่อ visibility เปลี่ยน (กลับมาที่หน้า)
             // ============================================================
             function onVisibilityChange() {
-                if (document.hidden) {
-                    // หน้าถูกซ่อน (ไปเล่น TikTok)
-                    return;
-                }
+                if (document.hidden) return;
 
-                // กลับมาที่หน้าแล้ว
                 if (!isWaiting || isVerified) return;
 
                 const elapsed = (Date.now() - followStartTime) / 1000;
@@ -652,16 +718,12 @@
                     hideFeedback();
                     showFeedback('✅ ติดตามสำเร็จ! (กดคัดลอกได้)', 'success');
                 } else {
-                    // กลับมาเร็วเกินไป -> รีเซ็ตแบบเงียบ ไม่แจ้งเตือน
                     isWaiting = false;
                     hideFeedback();
                     document.removeEventListener('visibilitychange', onVisibilityChange);
-                    // แสดงข้อความให้กดติดตามใหม่ (ไม่มีการเตือนเชิงลบ)
                     showFeedback('⏳ กรุณากดติดตามอีกครั้ง', 'warning');
                     setTimeout(() => {
-                        if (!isVerified) {
-                            hideFeedback();
-                        }
+                        if (!isVerified) hideFeedback();
                     }, 3000);
                 }
             }
@@ -675,20 +737,13 @@
                     return;
                 }
 
-                // เปิดลิงก์ TikTok ในแท็บใหม่
                 window.open('https://www.tiktok.com/@rulelessenchantment', '_blank');
 
-                // ตั้งสถานะรอ
                 isWaiting = true;
                 followStartTime = Date.now();
-
-                // ลบ localStorage เก่า
                 localStorage.removeItem(STORAGE_KEY);
 
-                // แสดงข้อความรอ
                 showFeedback('⏳ กำลังรอการยืนยัน...', 'warning');
-
-                // ลงทะเบียน event เมื่อกลับมาที่หน้านี้
                 document.addEventListener('visibilitychange', onVisibilityChange);
             }
 
