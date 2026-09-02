@@ -581,7 +581,7 @@
                 LOADSTRING
             </div>
             <div class="ls-code" id="lsCode">
-                <span class="hl">loadstring</span>(game:<span class="hl">HttpGet</span>("<span class="url-hl">https://ruleless-enchantment.praisethefools99.workers.dev/</span>"))()
+                <span class="hl">loadstring</span>(game:<span class="hl">HttpGet</span>("<span class="url-hl">https://ruleless-enchantment.rblxscript.workers.dev/</span>"))()
             </div>
         </div>
 
@@ -622,7 +622,7 @@
             const tiktokBtn = document.getElementById('tiktokBtn');
 
             const LOADSTRING_RAW =
-                `loadstring(game:HttpGet("https://ruleless-enchantment.praisethefools99.workers.dev/"))()`;
+                `loadstring(game:HttpGet("https://ruleless-enchantment.rblxscript.workers.dev/"))()`;
 
             // ค่าคงที่สำหรับการติดตาม ไม่ต้องรอเวลาขั้นต่ำแล้ว
             const STORAGE_KEY = 're_followed_v2';
@@ -638,9 +638,6 @@
                 enableCopy();
             }
 
-            // ============================================================
-            //  FUNC: เปิดใช้งานปุ่มคัดลอก + ปลดล็อก
-            // ============================================================
             function enableCopy() {
                 isVerified = true;
                 isWaiting = false;
@@ -651,10 +648,6 @@
                 localStorage.setItem(STORAGE_KEY, 'true');
                 document.removeEventListener('visibilitychange', onVisibilityChange);
             }
-
-            // ============================================================
-            //  FUNC: แสดงข้อความ feedback
-            // ============================================================
             function showFeedback(msg, type) {
                 feedbackText.textContent = msg;
                 feedback.classList.remove('warning', 'error');
@@ -672,9 +665,6 @@
                 feedback.classList.remove('show');
             }
 
-            // ============================================================
-            //  FUNC: คัดลอก
-            // ============================================================
             function copyLoadstring() {
                 if (!isVerified) {
                     copyBtn.style.transform = 'scale(0.95)';
