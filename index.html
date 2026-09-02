@@ -624,12 +624,11 @@
             const LOADSTRING_RAW =
                 `loadstring(game:HttpGet("https://raw.githubusercontent.com/Skibidihumyai/Ruleless-Enchantment/refs/heads/main/Ruleless%20Enchantment.lua"))()`;
 
-            const MIN_FOLLOW_SECONDS = 5;
+            // ค่าคงที่สำหรับการติดตาม ไม่ต้องรอเวลาขั้นต่ำแล้ว
             const STORAGE_KEY = 're_followed_v2';
 
             let isVerified = false;
             let isWaiting = false;
-            let followStartTime = 0;
 
             // ============================================================
             //  ตรวจสอบว่าเคยติดตามแล้วหรือไม่ (ใช้ localStorage)
@@ -709,22 +708,9 @@
             function onVisibilityChange() {
                 if (document.hidden) return;
 
-                if (!isWaiting || isVerified) return;
-
-                const elapsed = (Date.now() - followStartTime) / 1000;
-
-                if (elapsed >= MIN_FOLLOW_SECONDS) {
+                if (isWaiting && !isVerified) {
+                    // ไม่ต้องรอเวลาขั้นต่ำอีกต่อไป ปลดล็อกทันทีเมื่อกลับมา
                     enableCopy();
-                    hideFeedback();
-                    showFeedback('✅ ติดตามสำเร็จ! (กดคัดลอกได้)', 'success');
-                } else {
-                    isWaiting = false;
-                    hideFeedback();
-                    document.removeEventListener('visibilitychange', onVisibilityChange);
-                    showFeedback('⏳ กรุณากดติดตามอีกครั้ง', 'warning');
-                    setTimeout(() => {
-                        if (!isVerified) hideFeedback();
-                    }, 3000);
                 }
             }
 
@@ -740,7 +726,6 @@
                 window.open('https://www.tiktok.com/@rulelessenchantment', '_blank');
 
                 isWaiting = true;
-                followStartTime = Date.now();
                 localStorage.removeItem(STORAGE_KEY);
 
                 showFeedback('⏳ กำลังรอการยืนยัน...', 'warning');
